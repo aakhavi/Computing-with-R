@@ -1,0 +1,101 @@
+---
+title: "Lab1_Akhavi"
+author: "Arash Akhavi"
+date: "9/24/2021"
+output: 
+  prettydoc::html_pretty:
+  theme: architect
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+```
+
+```{r}
+library(prettydoc)
+library(ggplot2)
+library(tidyverse)
+library(readr)
+library(viridis)
+data <- read_csv("Data/q1data.csv")
+```
+## Task 1 
+-Income and life expectancy are being compared in this example. A bubble plot based off of a scatter plot is being used to compare the two variables. Aesthetics include variables, size, an alpha, and colors. 
+```{r}
+data %>%
+  ggplot(aes(x = income, y = life_exp, size = population, alpha = 0.3, color = four_regions)) + ggtitle("Task 1") +
+  geom_point(alpha = 0.5) +
+  scale_size(range = c(1, 24), name = "population")  + xlab("Income") + 
+  ylab("Life Expectancy") + scale_x_continuous(trans='log2') +
+  annotate("text", x = 30000, y = 65, label = "2010",  size = 20, aplha = 0.2)  + 
+   xlim(0, 64000) + ylim(0, 90) + scale_y_continuous(minor_breaks = seq(10, 90, 10)) + scale_color_manual(values = c("blue1", "aquamarine2", "coral3", "darkgoldenrod1"), name = "region")
+```
+ 
+```{r}
+data %>%
+  ggplot(aes(x = income, y = life_exp, alpha = 0.3, color = four_regions)) + ggtitle("Task 1 Alternative") +
+  geom_point(alpha = 0.5) +
+  scale_size(range = c(1, 24), name = "population")  + xlab("Income") + 
+  ylab("Life Expectancy") + scale_x_continuous(trans='log2') +
+  annotate("text", x = 30000, y = 65, label = "2010",  size = 20, aplha = 0.2)  + 
+   xlim(0, 64000) + ylim(0, 90) + scale_y_continuous(minor_breaks = seq(10, 90, 10)) + scale_color_manual(values = c("blue1", "aquamarine2", "coral3", "darkgoldenrod1"), name = "region")
+```
+Utilizing geom_point While it reveals the general trend of the data. It doesn't convey the same information as using geom_point which has larger sized points where more data is concentrated.
+
+## Task 2
+-Imports and exports are being compared in this example. The bubble plot shows the two variables being compared with regard to population. Aesthetics include variables, size, an alpha, and colors. 
+```{r}
+data1 <- read_csv("Data/q2data.csv")
+data1 %>%
+  ggplot(aes(x = exports, y = imports, color = four_regions)) + geom_point(alpha = 0.5) + ggtitle("Task 2") +
+  scale_size(range = c(1, 24), name = "population") + xlab("Exports(% of GDP)") + ylab("Imports(% of GDP)") +  annotate(geom = "text", x = 110, y = 200, label = "1997",  size = 20, aplha = 0.15) + 
+  xlim(0, 220) + ylim(0, 400) + 
+  scale_color_manual(values = c("blue1", "aquamarine2", "coral3", "darkgoldenrod1"), name = "region")
+```
+
+```{r}
+data1 <- read_csv("Data/q2data.csv")
+data1 %>%
+  ggplot(aes(x = exports, y = imports, color = four_regions)) + geom_smooth(alpha = 0.5) + ggtitle("Task 2 Alternative") +
+  scale_size(range = c(1, 24), name = "population") + xlab("Exports(% of GDP)") + ylab("Imports(% of GDP)") +  annotate(geom = "text", x = 110, y = 200, label = "1997",  size = 20, aplha = 0.15) + 
+  xlim(0, 220) + ylim(0, 400) + 
+  scale_color_manual(values = c("blue1", "aquamarine2", "coral3", "darkgoldenrod1"), name = "region")
+```
+Utilizing geom_smooth as another geometry the data is shown by four colored curves. These curves do show the general trend of the data but the bubble chart used in the first part of Task 2 displays the data in a more readable fashion. This alternative plot is not great at showing just how much data is in a certain area, where a scatter plot does. 
+
+
+## Task 3
+-GDP per capita and individuals using the internet are being compared in this example. The bubble plot shows the two variables being compared with regard to population. Aesthetics include variables, size, an alpha, and colors. 
+```{r}
+data2 <- read_csv("Data/q3data.csv")
+data2 %>%
+  ggplot(aes(x = internet_users, y = gdp, color = four_regions)) + geom_point(alpha = 0.5) + ggtitle("Task 3") + 
+  scale_size(range = c(1, 24), name = "population") + xlab("Individuals using the Internet") + ylab("GDP/capita") + scale_y_continuous(trans='log10') + annotate(geom = "text", x = 45, y = 50000, label = "2001",  size = 20, aplha = 0.15) + 
+  xlim(0, 90) + ylim(0, 100000) + 
+  scale_color_manual(values = c("blue1", "aquamarine2", "coral3", "darkgoldenrod1"), name = "region")
+```
+```{r}
+data2 <- read_csv("Data/q3data.csv")
+data2 %>%
+  ggplot(aes(x = internet_users, y = gdp, color = four_regions)) + geom_col(alpha = 0.5) + ggtitle("Task 3 Alternative") + 
+  scale_size(range = c(1, 24), name = "population") + xlab("Individuals using the Internet") + ylab("GDP/capita") + scale_y_continuous(trans='log10') + annotate(geom = "text", x = 45, y = 50000, label = "2001",  size = 20, aplha = 0.15) + 
+  xlim(0, 90) + ylim(0, 100000) + 
+  scale_color_manual(values = c("blue1", "aquamarine2", "coral3", "darkgoldenrod1"), name = "region")
+```
+Utilizing geom_col the data from q3data is displayed alternatively in the form of a column graph. This is useful in easily seeing where the data generally is but, it does not have the same readability of a bubble chart.
+
+## Challenge Points
+Utilizing q3 data and changing aesthetics to year, income, a different size, and alpha variable. 
+
+```{r}
+data2 <- read_csv("Data/q3data.csv")
+data2 %>%
+  ggplot(aes(x = year, y = income, color = four_regions)) + geom_point(alpha = 0.2) + ggtitle("Challenge Point") + 
+  scale_size(range = c(1, 24), name = "population") + xlab("Year") + ylab("Income (USD)") + scale_y_continuous(trans='log10') + annotate(geom = "text", x = 1000, y = 30000, label = "2001",  size = 20, aplha = 0.15) + 
+  xlim(0, 2002) + ylim(0, 60000) + 
+  scale_color_manual(values = c("blue1", "aquamarine2", "coral3", "darkgoldenrod1"), name = "region")
+```
+The new graph generated using different variables from q3data is worse than the original task 3 plot as well as the alternative task 3 plot. This is because only one variable is changing in the data set so year is constant throughout. The bubble plot does not show this data in an easy to read fashion. Additionally, alpha was decreased which does not help with seeing the data. However, this is not the largest problem as all the data points are on one portion of the x-axis. 
+
+Challenge Point part 2
+For the variable portion of aesthetics, it's in the best interest of a data analyst to choose two variables with a broad range of values so the visuals do not look like the previous plot. As for color, it is best to choose colors that are not similar to one another to limit confusion in visuals. For example, choosing red, blue, orange, green is a great option. With regard to the alpha variable, if you want to display a bubble chart with large sized bubbles you want a low alpha value so the audience can see the size of the bubble but so that the bubble does not cover the rest of the data points. Alpha can also be useful with many different variables so that they can be better differentiated from one another. 

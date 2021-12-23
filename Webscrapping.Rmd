@@ -1,0 +1,92 @@
+---
+title: "Day8_WebScraping_Activity_Akhavi"
+author: "Arash Akhavi"
+date: "10/14/2021"
+output: 
+  prettydoc::html_pretty:
+  theme: architect
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+```
+
+```{r}
+library(tidyverse)
+library(stringr)
+library(rvest)
+library(dplyr)
+```
+
+Web scrapping Example 1
+```{r}
+#Web scrape San Luis Obispo weather data from desired URL 
+#Run html_table and html_text to see which works best
+weatherurl <- "https://forecast.weather.gov/MapClick.php?lat=35.2603&lon=-120.6946#.YWhccRrMI2w"
+weatherlink <- read_html(weatherurl)
+forecasthtml <- html_nodes(weatherlink, css = ".forecast-text , #detailed-forecast-body b")
+forecasttext <- html_text(forecasthtml)
+paste(forecasttext, collapse = " ")
+
+#Create a data frame with combined data
+forecastdf <- data.frame(
+  time_of_day = forecasttext[seq(from = 1, to = 26, by = 2)],
+  forecast = forecasttext[seq(from = 2, to =26, by =2)]
+)
+```
+
+Activity
+```{r}
+#Scrape the data from the crypto currency webpage
+cryptourl <- "https://goldprice.org/cryptocurrency-price"
+cryptolink <- read_html(cryptourl)
+cryptohtml <- html_nodes(cryptolink, css = ".views-field-field-crypto-price-change-pc-24h , .views-field-field-crypto-price , .views-field-field-market-cap , .views-field-field-crypto-proper-name a")
+cryptotext <- html_text(cryptohtml)
+
+
+#Clean data
+clean <- str_replace_all(cryptotext, "\\$", "") 
+clean1 <- str_replace_all(clean, "\n", "")
+clean2 <- str_replace_all(clean1, "%", "")
+clean3 <- str_replace_all(clean2, ",", "")
+
+#Create a data frame with the scrapped data
+cryptodf <- data.frame(
+  crypto_currency = clean3[seq(from = 1, to = 260, by = 4)],
+  market_cap = clean3[seq(from = 2, to = 260, by = 4)],
+  price = clean3[seq(from = 3, to = 260, by = 4)],
+  daily_change_percent = clean3[seq(from = 4, to = 260, by = 4)]
+)
+
+
+#Mutate daily change column from percents to decimals
+cryptodf1 <- cryptodf %>% 
+  mutate(
+    daily_change_decimals = (as.numeric(daily_change_percent)) / 100,
+    market_cap_num = (as.numeric(market_cap)),
+    price_num = (as.numeric(price))
+  )
+cryptodf1
+
+#Identify top crypto currency with regard to Market Cap
+top_market_cap <- cryptodf1 %>%                                     
+  arrange(desc(market_cap_num)) 
+top_market_cap  
+
+#Identify top crypto currency with regard to Price 
+top_price <- cryptodf1 %>%                                     
+  arrange(desc(price_num))
+top_price  
+
+#Identify top crypto currency with regard to Change 
+top_daily_change <- cryptodf1 %>%                                     
+  arrange(desc(daily_change_decimals))
+top_daily_change  
+```
+The top two crypto currencies with the highest market cap values are Bitcoin and Etherium with market caps of respectively $1,082,695,399,376 and $447,511,744,791.
+
+The top two crypto currencies with the highest prices are Bitcoin and  year.finance with prices of respectively $57,450 and $35,240.
+
+The top two crypto currencies with the highest daily change values are Aave [old] and Hedera with daily change values of respectively 0.5113 and 0.0741.
+
+ 

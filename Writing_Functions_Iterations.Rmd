@@ -1,0 +1,77 @@
+---
+title: "Lab3_Akhavi"
+author: "Arash Akhavi"
+date: "10/8/2021"
+output: 
+  prettydoc::html_pretty:
+  theme: architect
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+```
+
+```{r libraries}
+library(english)
+library(glue)
+library(tidyverse)
+```
+
+```{r}
+#Import Data
+xmas <- read.csv("https://www.dropbox.com/s/12ipnczn0fygglt/xmas.csv?dl=1")
+xmas
+```
+Step One: Make gift phrases
+```{r}
+make_phrase <- function(num, gift) {
+  glue("{english(num)} {gift}")
+}
+
+make_phrase(num = 10, gift = "lords a-leaping")
+
+#Create a new column in xmas data
+xmas %>%
+  mutate(
+    Gift_Phrase = make_phrase(Day, Gift.Item)
+  )
+```
+Step Two: Verses
+```{r}
+sing_verse <- function(num, day_label, gifts) {
+  print(glue("On the {day_label[num]} day of Christmas my true love sent to me"))
+  for(i in num:1) {
+    if(i > 1) {
+      print(make_phrase(i, gifts[i]))
+    }
+    else {
+      print(glue("and {make_phrase(i, gifts[i])}"))
+    }
+  }
+}
+
+sing_verse(2, xmas$Day.in.Words, xmas$Gift.Item)
+```
+
+Step Three: Sing the whole song
+```{r}
+sing_xmas_song <- function(num, day_label, gifts) {
+  for(i in 1:num) {
+     if(i >= 1) {
+      sing_verse(i, day_label, gifts)
+     }
+  }
+}
+
+sing_xmas_song(12, xmas$Day.in.Words, xmas$Gift.Item)
+```
+
+Step Four: Try your functions
+```{r}
+#Import new data
+xmas2 <- read.csv("https://www.dropbox.com/s/tmilnd6ad8k26wy/xmas2.csv?dl=1")
+
+sing_xmas_song(12, xmas2$Day.in.Words, xmas2$Gift.Item)
+```
+
+

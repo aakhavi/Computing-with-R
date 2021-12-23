@@ -1,0 +1,264 @@
+---
+title: "Lab 5 Akhavi Midterm Practice"
+author: "Arash Akhavi"
+date: "10/21/2021"
+output: 
+  prettydoc::html_pretty:
+  theme: architect
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+```
+
+```{r}
+library(tidyverse)
+library(stringr)
+library(lubridate)
+library(ggplot2)
+library(reprex)
+#Import Data
+min_wage <- read_csv("Data/min_wage.csv")
+```
+PART ONE:
+
+1. With regard to the private sector and the open-source community and R and Rstudio I think it is great that R and Rstudio are open-source for students and anyone willing to learn. I think this is great for the community and will lead to more people learning how to use it. I also think it was an incredibly intelligent move for the developers of Rstudio to charge private companies for using Rstudio which in turn allows them to provide incentive and fund developers to develop more packages for Rstudio. 
+
+2. 
+  a is an atomic vector
+  a has the object class integer
+  length(a) is equal to 1
+  as.character(a) will return "10"
+  
+3.    
+  a matrix
+  
+4. 
+  str_extract(student_names, "^K.*")
+  str_subset(student_names, "^K")
+  str_subset(student_names, "^K.*")
+  str_subset(student_names, "^K[a-z]*")
+  str_subset(student_names, "K[a-z]* ")
+  
+5. 
+  stop("x must be length 1")
+
+
+PART TWO: 
+  
+```{r}
+vec <- c("1.01 - 1.02 (b)", "4.24 - 6.7 (c,b)", "1.5 (a) - 2.4 (d-f)")
+
+get_footnotes <- function(vec) {
+  str_extract_all(vec, "\\([^()]+\\)")
+}
+get_footnotes(vec)
+```
+
+
+```{r}
+vec <- c("1.01 - 1.02 (b)", "4.24 - 6.7 (c,b)", "1.5 (a) - 2.4 (d-f)")
+
+get_nums <- function(vec) {
+    vec <- str_replace_all(vec, "[:alpha:]", "")
+    vec <- str_replace_all(vec, "[()]", "")
+    vec <- str_replace_all(vec, "\\-", "")
+    vec <- str_replace_all(vec, "\\,", "")
+    vec <- str_trim(vec, side = "right")
+    
+    df <- data.frame(
+     First.Num = str_match(vec, "[^[:blank:]]+"),
+     Last.Num = str_sub(vec, -4, -1)
+)
+  return(df)
+}
+get_nums(vec)
+```
+PART THREE:
+1. How many entries in this dataset had footnote (b)?
+80 entries in the min_wage dataset had footnote (b).
+```{r}
+min_wage %>% 
+  select(Footnote) %>% 
+  filter(Footnote == "(b)") %>% 
+  arrange()
+```
+
+2. Which states had the highest and lowest minimum wage in each year? (Use the High.Value dollar amount, not adjusted for inflation.)
+
+```{r}
+#Highest minimum wage
+high_min_wage <- min_wage %>% 
+  select(State, Year, High.Value) %>% 
+  group_by(Year) %>% 
+  slice_max(High.Value)
+high_min_wage
+
+#Lowest minimum wage
+low_min_wage <- min_wage %>% 
+  select(State, Year, Low.Value) %>% 
+  group_by(Year) %>% 
+  slice_min(Low.Value)
+low_min_wage
+```
+
+3. Which states had the largest change in minimum wage (difference between high and low values) in each year?
+
+```{r}
+Difference <- min_wage %>% 
+  mutate(
+    Difference = High.Value - Low.Value
+  )
+
+Difference %>% 
+  select(State, Year, Difference) %>% 
+  group_by(Year) %>% 
+  slice_max(Difference)
+```
+
+4. Consider only Texas and California. Make a plot comparing their minimum wage in 2018 dollars (Low.2018) over time.
+```{r}
+min_wage %>% 
+  filter(State == "California" | State == "Texas") %>% 
+  ggplot(aes(x = Year, y = Low.2018, color = State)) + 
+        geom_line()
+```
+
+5. Create a new data frame with the following properties:
+-Each row should represent a different year of observations.
+-Each column should represent one state
+-Values should be the highest minimum wage (High.2018) in that state for a particular year
+
+```{r}
+min_wage_longer <- min_wage %>% 
+  select(Year, State, High.2018) %>% 
+  pivot_wider(Year,
+              names_from = State,
+              values_from = High.2018) 
+min_wage_longer
+```
+
+PART FOUR:
+How does minimum wage differ by region?
+```{r}
+#State Function
+state_abb <- function(state) {
+  return(state.abb[match(state,state.name)]) 
+}
+min_wage <- min_wage %>% 
+  mutate(
+    state_abb = state_abb(State)
+  )
+#Create Regions
+min_wage <- min_wage %>% 
+  mutate(
+Region = case_when(state_abb == "CT" | state_abb == "ME" | state_abb == "MA" | state_abb == "NH" | state_abb == "RI" | state_abb == "VT" | state_abb == "NJ" | state_abb == "NY" | state_abb == "PA" ~ "Northeast (NE)",
+
+state_abb == "IL" | state_abb == "IN" | state_abb == "MI" | state_abb == "OH" | state_abb == "WI" | state_abb == "IA" | state_abb == "KS" | state_abb == "MN" | state_abb == "MO" | state_abb == "NE" | state_abb == "ND" | state_abb == "SD" ~ "Midwest (MW)",
+
+state_abb == "DE" | state_abb == "FL" | state_abb == "GA" | state_abb == "MD" | state_abb == "NC" | state_abb == "SC" | state_abb == "VA" | state_abb == "WV" | state_abb == "AL" | state_abb == "KY" | state_abb == "MS" | state_abb == "TN" | state_abb == "AR" | state_abb == "LA" | state_abb == "OK" | state_abb == "TX" ~ "South (S)",
+
+state_abb == "AZ" | state_abb == "CO" | state_abb == "ID" | state_abb == "MT" | state_abb == "NV" | state_abb == "NM" | state_abb == "UT" | state_abb == "WY" | state_abb == "AK" | state_abb == "CA" | state_abb == "HI" | state_abb == "OR" | state_abb == "WA" ~ "West (W)"))
+```
+
+Compare the minimum wage between regions to come up with an interesting insight.
+
+For example: Did some regions grow faster than others? Do some regions tend to have higher minimum wage than others? etc.
+
+Create a writeup of approximately 1 page (including all plots and tables) that tells a clear story. Your writeup must include at least on plot and at least one summary statistic.
+
+```{r}
+min_wage %>% 
+  ggplot(aes(x = Region, y = High.2018, fill = Region)) +
+  geom_boxplot() + 
+  xlab("Regions") +
+  ylab("Average Minimum Wage") +
+  ggtitle("Average Minimum Wage vs. Region")
+```
+
+The plot above represents the average minimum wage across the four regions of the United States. The data set reveals that the region with the highest average minimum wage is the NorthEast region of the United States. The region with the lowest average minimum wage is the South. Although the NorthEast has the highest average minimum wage in the USA, the West has the highest standard deviation out of all of the regions and on the high end of the spectrum the West does have the highest minimum wage values. It is worth noting that the MidWest and West may have such a large range in standard deviation because of the population and amount of states included in those regions but it can also simply be due to the many varying cities and counties with a range of minimum wage levels. What we can take away from this data is that on average, individuals working minimum wage jobs in the NorthEast region of the United States make more money than individuals working minimum wage jobs in the South or Southern region of the United States. 
+
+```{r}
+min_wage %>% 
+  filter(State == "California" | State == "Texas" | State == "New York" |   State == "Illinois") %>% 
+  ggplot(aes(x = Year, y = High.2018, color = State)) + 
+        geom_line() +
+        ggtitle("High minimum wage vs. Year in CA, IL, NY, TX")
+```
+
+The states California, New York, Illinois, and Texas were chosen as they are the states with the largest populations in each respective region (West, NorthEast, MidWest, and South). By generating a line plot of each of their historic high minimum wage data the change in the high minimum wage rates across the 4 states can be seen over the course of the past fifty years. The plot generated gives insightful information regarding changes in the high minimum wage. 
+
+For example, although Texas had a much lower minimum wage than California, Illinois, and New York in 1970, it has steadily increased over the course of the past fifty years while the other states have mostly seen a decline until around the year 1990. 
+At the year 1990 we can see that CA, IL, and NY begin to steadily increase with incremental dips up until the year 2015. 
+
+```{r}
+#Take the Average Value of High.2018 
+min_wage <- min_wage %>% 
+  drop_na() %>% 
+  mutate(
+    High.2018 = as.numeric(High.2018)
+  )
+
+x <- mean(min_wage$High.2018)
+x
+```
+The average of the high minimum wages across the United States is 7.23 USD. This data is based on information collected in the year 2018, which is almost four years ago. Based on the plot made earlier showing the changes in the high minimum wage in the four most populous states we can assume that this digit has increased since 2018.
+
+
+```{r}
+#Take the Average Value of High.2018 
+min_wage_longer <- min_wage_longer %>% 
+  drop_na()
+
+#Take the average value of 2 states from each region
+#West
+CA <- mean(min_wage_longer$`California`)
+NM <- mean(min_wage_longer$`New Mexico`)
+#MidWest
+SD <- mean(min_wage_longer$`South Dakota`)
+MI <- mean(min_wage_longer$`Michigan`)
+#NorthEast
+VT <- mean(min_wage_longer$`Vermont`)
+NY <- mean(min_wage_longer$`New York`)
+#South
+MS <- mean(min_wage_longer$`Missouri`)
+KT <- mean(min_wage_longer$`Kentucky`)
+
+df <- data.frame(
+  California = CA,
+  New_Mexico = NM,
+  South_Dakota = SD,
+  Michigan = MI,
+  Vermont = VT,
+  New_York = NY,
+  Missouri = MS,
+  Kentucky = KT
+)
+
+df
+```
+
+The data frame generated above displays the average minimum wage information from eight different states. This includes two states from each region. CA and NM from the West, SD and MI from the MidWest, VT and NY from the NorthEast, and MS and KT from the South. From the data frame above it is evident that the highest average minimum wage is from the state of Vermont which is located in the NorthEast region of the United States. The lowest average minimum wage is from the state of Missouri located in the Southern region of the United States. This data is consistent with the rest of the plots generated earlier and suggests that the NorthEast region of the United States pays, on average, individuals the highest minimum wage and the Southern region of the United States pays, on average, individuals the lowest minimum wage. 
+
+
+---------------------------------------
+state_abb <- function(name){
+  return(state.abb[match(name,state.name)])
+}
+
+myData$St_Abb <- state_abb(myData$State)
+
+West <- list("CA", "OR", "WA", "NV", "ID", "AZ", "UT", "CO", "NM", "WY", "MT", "AK", "HI")
+Midwest <- list("ND", "SD", "NE", "KS", "MN", "IA", "MO", "WI", "IL", "MI", "IN", "OH")
+Northeast <- list("PA", "NY", "VT", "NH", "MA", "CT", "RI", "ME", "NJ")
+South <- list("OK", "TX", "LA", "AR", "MS", "AL", "TN", "KY", "GA", "FL", "SC", "NC", "VA", "WV", "DE", "MD")
+
+myData <- myData %>%
+  mutate(
+    Region = case_when(
+      St_Abb %in% West ~ "West", 
+      St_Abb %in% Midwest ~ "Midwest",
+      St_Abb %in% Northeast ~ "Northeast",
+      St_Abb %in% South ~ "South"
+  )
+)
