@@ -1,2 +1,3 @@
 # Computing-with-R
-A collection of projects from a graduate course in Computing for Economics using R
+This repository is a collection of projects from a Cal Poly graduate course taken in Fall 2021 in Computing for Economics using R
+
